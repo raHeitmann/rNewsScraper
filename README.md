@@ -1,0 +1,2 @@
+# rNewsScraper
+Scrapes r/News 
