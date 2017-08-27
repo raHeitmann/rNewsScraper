@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 
 // Database configuration with mongoose
-mongoose.connect("mongodb://localhost/redditNews");
+mongoose.connect("mongodb://heroku_psbm5rk8:a7b6vef5j53n0p0mefskdt3ei6@ds161503.mlab.com:61503/heroku_psbm5rk8");
 var db = mongoose.connection;
 
 // Show any mongoose errors
@@ -53,7 +53,7 @@ db.once("open", function() {
 
 app.get('/', function (req, res) {
 
-  var query = Article.find({});
+  var query = Article.find({}).limit(25);
   
   query.exec(function (err, docs) {
     if (err) {
