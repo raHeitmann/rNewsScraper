@@ -1,19 +1,22 @@
-// Grab the articles as a json
-$.getJSON("/articles", function(data) {
-  // For each one
-  for (var i = 0; i < data.length; i++) {
-    // Display the apropos information on the page
-    $("#articles").append("<div class='clickArticle'><p data-id='" + data[i]._id + "'><h3>" + data[i].title + "</h3>" + data[i].link + "</p></div>");
-  }
+$(document).on("click", "#scraperBtn", function() {
+  $.ajax({
+    method: "GET",
+    url: "/scrape"
+  })
+  .done(function(data) {
+    alert("scraped!");
+    location.reload();
+});
 });
 
 
-// Whenever someone clicks a p tag
-$(document).on("click", ".clickArticle", function() {
+//TODO, CHANGE THIS TO SAVED ARTICLES
+$(document).on("click", "#newNoteBtn", function() {
   // Empty the notes from the note section
   $("#notes").empty();
   // Save the id from the p tag
   var thisId = $(this).attr("data-id");
+
 
   // Now make an ajax call for the Article
   $.ajax({
@@ -42,12 +45,30 @@ $(document).on("click", ".clickArticle", function() {
     });
 });
 
-// When you click the savenote button
+$(document).on("click", "#saveArticleBtn", function() {
+
+var thisId = $(this).attr("data-id");
+$(this).attr("id", "alreadySaved");
+$(this).text("Saved!");
+
+$.ajax({
+  method: "GET",
+  url: "/saveArticle/" + thisId,
+
+})
+  // With that done, add the note information to the page
+  .done(function(data) {
+    console.log(data);
+
+
+  });
+});
+
+
 $(document).on("click", "#savenote", function() {
-  // Grab the id associated with the article from the submit button
+
   var thisId = $(this).attr("data-id");
 
-  // Run a POST request to change the note, using what's entered in the inputs
   $.ajax({
     method: "POST",
     url: "/articles/" + thisId,
@@ -66,7 +87,6 @@ $(document).on("click", "#savenote", function() {
       $("#notes").empty();
     });
 
-  // Also, remove the values entered in the input and textarea for note entry
   $("#titleinput").val("");
   $("#bodyinput").val("");
 });

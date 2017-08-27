@@ -1,15 +1,7 @@
-/* Scrape and Display
- * (If you can do this, you should be set for your hw)
- * ================================================== */
-
-// STUDENTS:
-// Please complete the routes with TODOs inside.
-// Your specific instructions lie there
-
-// Good luck!
 
 // Dependencies
 var express = require("express");
+var exphbs  = require('express-handlebars');
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 var mongoose = require("mongoose");
@@ -25,6 +17,10 @@ mongoose.Promise = Promise;
 
 // Initialize Express
 var app = express();
+
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
+
 
 // Use morgan and body parser with our app
 app.use(logger("dev"));
@@ -53,6 +49,34 @@ db.once("open", function() {
 // Routes
 // ======
 
+
+
+app.get('/', function (req, res) {
+
+  var query = Article.find({});
+  
+  query.exec(function (err, docs) {
+    if (err) {
+        throw Error;
+    }
+    res.render('home', {articles: docs});
+  });
+
+});
+
+app.get('/noway', function (req, res) {
+
+  var query = Article.find({saved:true});
+  
+  query.exec(function (err, docs) {
+    if (err) {
+        throw Error;
+    }
+    res.render('savedNotes', {articles: docs});
+  });
+
+});
+
 // A GET request to scrape the echojs website
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with request
@@ -73,48 +97,55 @@ app.get("/scrape", function(req, res) {
       // This effectively passes the result object to the entry (and the title and link)
       var entry = new Article(result);
 
-      // Now, save that entry to the db
-      entry.save(function(err, doc) {
-        // Log any errors
-        if (err) {
-          console.log(err);
-        }
-        // Or log the doc
-        else {
-          console.log(doc);
-        }
-      });
-
+              // First, check for duplicates using $addToSet
+              Article.update({_id: entry._id}, {$addToSet:{title: entry.title,link: entry.link}});
+              // Now, save that entry to the db
+              entry.save(function(err, doc) {
+                // Log any errors
+                if (err) {
+                  console.log(err);
+                }
+                // Or log the doc
+                else {
+                  console.log(doc);
+                }
+              });
     });
   });
   // Tell the browser that we finished scraping the text
-  res.send("Scrape Complete");
+
+  res.end();
 });
 
-// This will get the articles we scraped from the mongoDB
-app.get("/articles", function(req, res) {
-
-
-  // TODO: Finish the route so it grabs all of the articles
-  Article.find({}, function(error, doc) {
+// SAVES ARTICLES
+app.get("/saveArticle/:id", function(req, res) {
+  
+  Article.findById(req.params.id, function (error, doc) {
     if (error) {
       res.send(error);
-    }
-    else {
-      res.send(doc);
-    }
-  });
+
+} else {
+    // Update each attribute with any possible attribute that may 
+    // have been submitted in the body of the request
+
+    doc.saved = true;
+
+    // Save the updated document back to the database
+    doc.save(function (err, data) {
+        if (err) {
+            res.status(500).send(err)
+        }
+        res.send(data);
+    });
+  }
+    // Article.findByIdAndUpdate(req.params.id, {saved: true});
+});
 });
 
 // This will grab an article by it's ObjectId
 app.get("/articles/:id", function(req, res) {
 
-
-  // TODO
-  // ====
-  Article.findById(req.params.id, function(error, doc){
-
-  })
+  Article.findById(req.params.id, function(error, doc){})
   .populate("note").exec(function(error, doc){
     if (error) {
       res.send(error);
@@ -124,35 +155,52 @@ app.get("/articles/:id", function(req, res) {
       res.send(doc);
     }
   });
-  // Finish the route so it finds one article using the req.params.id,
-  // and run the populate method with "note",
-  // then responds with the article with the note included
+
 });
 
 // Create a new note or replace an existing note
 app.post("/articles/:id", function(req, res) {
 
-
-  // TODO
-  // ====
   var newNote = new Note(req.body);
   // save the new note that gets posted to the Notes collection
-newNote.save(function(error, doc) {
+  newNote.save(function(error, doc) {
   if (error) {
     res.send(error);
   }
 
   else {
    Article.findByIdAndUpdate(req.params.id, {note: newNote._id});
-
   }
 });
-  // then find an article from the req.params.id
-
-  // and update it's "note" property with the _id of the new note
-
 
 });
+
+
+app.get("/savedNotes", function(req, res) {
+  
+    Article.find({saved:true}, function(error, doc) {
+      if (error) {
+        res.send(error);
+      }
+      else {
+        res.send(doc);
+      }
+    });
+  });
+
+
+// This will get the articles we scraped from the mongoDB
+app.get("/articles", function(req, res) {
+  
+    Article.find({}, function(error, doc) {
+      if (error) {
+        res.send(error);
+      }
+      else {
+        res.send(doc);
+      }
+    });
+  });
 
 
 // Listen on port 3000

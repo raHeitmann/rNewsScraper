@@ -1,0 +1,31 @@
+
+    <div class="row" id="topRow">
+      <a href="/"><button type="button" class="btn btn-warning" id="savedNotes">Home</button></a>
+      <button type="button" class="btn btn-info" id="savedNotes">Saved Notes</button>
+      <button type="button" class="btn btn-danger">Scrape more news!</button>
+    </div>
+
+    <div id="wrapper">
+  
+      <h1 id="mainTitle">r/News Scraper</h1>
+      
+      <div id="articles">SAVED ARTICLES
+       
+      {{#each articles}}
+      <div class='row clickArticle' data-id='{{this._id}}'>
+        <p>
+        <div class='col-md-10'>
+          <h3>{{this.title}}</h3>{{this.link}}
+        </p>
+        </div>
+        <div class='col-md-2'>
+          <button type='button' id='newNoteBtn' data-id='{{this._id}}' class='btn btn-info'>Add Note</button>
+        </div>
+      </div>
+      {{/each}}
+
+
+      </div>
+    <div id="notes"></div>
+
+    </div>
