@@ -28,6 +28,8 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 
+var port = process.env.PORT || 8080;
+
 // Make public a static dir
 app.use(express.static("public"));
 
@@ -204,6 +206,6 @@ app.get("/articles", function(req, res) {
 
 
 // Listen on port 3000
-app.listen(3000, function() {
-  console.log("App running on port 3000!");
+app.listen(port, function() {
+  console.log("App running on port "+port);
 });
